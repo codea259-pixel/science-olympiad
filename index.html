@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Day 2 Practice Set</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: #f6f3ec;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 48px 20px;
+    font-family: Georgia, 'Times New Roman', serif;
+    color: #242019;
+  }
+  .card {
+    width: 100%;
+    max-width: 560px;
+    background: #fffdf9;
+    border: 1px solid #e6e0d3;
+    border-radius: 4px;
+    padding: 40px 36px;
+  }
+  .kicker {
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    color: #8a8375;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  h1 {
+    font-size: 28px;
+    line-height: 1.25;
+    margin: 10px 0 12px;
+    font-weight: 500;
+  }
+  .subtext {
+    font-size: 15px;
+    color: #5c574c;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  .topic-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  .topic-chip {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    padding: 6px 12px;
+    background: #f0ece0;
+    border-radius: 20px;
+    color: #5c574c;
+  }
+  .btn-primary {
+    display: block;
+    width: 100%;
+    padding: 13px 0;
+    background: #3a3529;
+    color: #faf8f2;
+    border: none;
+    border-radius: 3px;
+    font-size: 15px;
+    font-family: Helvetica, Arial, sans-serif;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .btn-primary:hover { background: #2a2620; }
+  .btn-text {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: none;
+    border: none;
+    color: #8a5a3a;
+    font-size: 14px;
+    font-family: Helvetica, Arial, sans-serif;
+    cursor: pointer;
+    margin-top: 14px;
+    padding: 0;
+  }
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  .timer {
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    font-weight: 600;
+    color: #7a7266;
+  }
+  .timer.low { color: #a13d3d; }
+  .progress-track {
+    height: 3px;
+    background: #eee9dc;
+    border-radius: 2px;
+    margin: 14px 0 22px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #3a3529;
+    transition: width 0.3s ease;
+  }
+  .question {
+    font-size: 20px;
+    line-height: 1.4;
+    font-weight: 500;
+    margin-bottom: 22px;
+  }
+  .options-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    padding: 13px 16px;
+    border-radius: 3px;
+    border: 1px solid #ddd6c9;
+    font-size: 15px;
+    font-family: Georgia, serif;
+    background: #fff;
+    color: #2b2822;
+    cursor: pointer;
+  }
+  .option:hover:not(.locked) { border-color: #b8b096; }
+  .option.correct { background: #eef4ee; border-color: #3a6b4c; }
+  .option.wrong { background: #f7ece8; border-color: #a13d3d; }
+  .option.locked { cursor: default; }
+  .option-letter {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #9a9384;
+    width: 18px;
+    flex-shrink: 0;
+  }
+  .explanation-box {
+    margin-top: 20px;
+    padding: 14px 16px;
+    background: #f6f3ec;
+    border-radius: 3px;
+    font-size: 14px;
+    line-height: 1.5;
+    font-family: Georgia, serif;
+  }
+  .explanation-title {
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .explanation-title.correct { color: #3a6b4c; }
+  .explanation-title.wrong { color: #a13d3d; }
+  .breakdown-row {
+    display: flex;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee9dc;
+  }
+  .breakdown-row span:first-child { flex: 1; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="card" id="app"></div>
+
+<script>
+// ---------------------------------------------------------------
+// QUESTION DATA — 8 topics x 4 questions = 32 questions
+// ---------------------------------------------------------------
+const QUESTIONS = [
+  // FOSSILS
+  { topic: "Fossils", q: "What is a fossil most commonly formed from?",
+    options: ["Soft tissue like skin", "Hard parts like bones and shells", "Liquid blood", "Green leaves only"],
+    correct: 1,
+    explanation: "Hard parts like bone, teeth, and shells resist decay long enough to be buried and preserved. Soft tissue almost always breaks down first." },
+  { topic: "Fossils", q: "Which process replaces original bone material with minerals, turning it to stone?",
+    options: ["Permineralization", "Photosynthesis", "Evaporation", "Condensation"],
+    correct: 0,
+    explanation: "Permineralization happens when mineral-rich water seeps into bone and fills the tiny spaces, eventually turning it into rock." },
+  { topic: "Fossils", q: "A cast fossil forms when...",
+    options: ["An organism is frozen whole in ice", "An animal's shape leaves a mold that later fills with sediment", "Amber traps an insect", "A footprint is left in mud"],
+    correct: 1,
+    explanation: "A mold is the empty impression left behind. When that mold fills in with sediment or minerals, the resulting copy is called a cast." },
+  { topic: "Fossils", q: "Footprints, burrows, and nests are all examples of what kind of fossil?",
+    options: ["Trace fossils", "Body fossils", "Preserved DNA", "Chemical fossils"],
+    correct: 0,
+    explanation: "Trace fossils record evidence of an organism's activity — like a footprint or burrow — rather than its actual body parts." },
+
+  // DEEP BLUE SEA
+  { topic: "Deep Blue Sea", q: "Which ocean zone gets enough sunlight for photosynthesis?",
+    options: ["Epipelagic (sunlight) zone", "Bathypelagic (midnight) zone", "Abyssopelagic zone", "Hadalpelagic zone"],
+    correct: 0,
+    explanation: "The epipelagic zone reaches from the surface to about 200 meters — the only layer with enough light for plants and algae to photosynthesize." },
+  { topic: "Deep Blue Sea", q: "The 'midnight zone,' where no sunlight reaches at all, is properly called the:",
+    options: ["Mesopelagic zone", "Epipelagic zone", "Bathypelagic zone", "Intertidal zone"],
+    correct: 2,
+    explanation: "The bathypelagic zone (1,000–4,000 m) is completely dark. The mesopelagic zone above it is the dimmer 'twilight zone.'" },
+  { topic: "Deep Blue Sea", q: "How do many deep-sea fish attract prey or mates in total darkness?",
+    options: ["Bioluminescence", "Thick fur", "Loud calls", "Bright daytime coloring"],
+    correct: 0,
+    explanation: "Bioluminescence is light produced by a chemical reaction inside the animal's body — common in anglerfish and many deep-sea species." },
+  { topic: "Deep Blue Sea", q: "Why does water pressure increase dramatically the deeper you go in the ocean?",
+    options: ["The weight of all the water above pushes down harder", "The water gets saltier with depth", "Sunlight disappears", "The water gets warmer"],
+    correct: 0,
+    explanation: "Pressure comes from the weight of everything above a given point. The deeper you go, the more water is stacked on top of you." },
+
+  // NAME THE SCIENTIST
+  { topic: "Name the Scientist", q: "Who developed the theory of evolution by natural selection?",
+    options: ["Isaac Newton", "Charles Darwin", "Gregor Mendel", "Louis Pasteur"],
+    correct: 1,
+    explanation: "Charles Darwin proposed natural selection after studying finches and other wildlife on the Galápagos Islands." },
+  { topic: "Name the Scientist", q: "Which scientist is known as the father of genetics for his pea plant experiments?",
+    options: ["Charles Darwin", "Gregor Mendel", "Marie Curie", "Albert Einstein"],
+    correct: 1,
+    explanation: "Gregor Mendel tracked traits across generations of pea plants, discovering the basic rules of how traits are inherited." },
+  { topic: "Name the Scientist", q: "Who discovered radioactivity and won two Nobel Prizes in two different sciences?",
+    options: ["Rosalind Franklin", "Jane Goodall", "Marie Curie", "Ada Lovelace"],
+    correct: 2,
+    explanation: "Marie Curie won the Nobel Prize in Physics (1903) and Chemistry (1911) — the only person to win in two different sciences." },
+  { topic: "Name the Scientist", q: "Who described the three laws of motion and universal gravitation?",
+    options: ["Galileo Galilei", "Isaac Newton", "Nikola Tesla", "Albert Einstein"],
+    correct: 1,
+    explanation: "Isaac Newton published his three laws of motion and law of universal gravitation in 1687, in the Principia Mathematica." },
+
+  // COLOR WHEEL
+  { topic: "Color Wheel", q: "Mixing blue paint and yellow paint together makes:",
+    options: ["Green", "Orange", "Purple", "Brown"],
+    correct: 0,
+    explanation: "In pigment (paint) mixing, blue and yellow combine to make green." },
+  { topic: "Color Wheel", q: "Shining red light and green light on the same spot makes:",
+    options: ["Yellow", "Purple", "Brown", "Blue"],
+    correct: 0,
+    explanation: "Light mixes differently than paint. Red and green light combined (additive mixing) produce yellow — not brown like the paint version." },
+  { topic: "Color Wheel", q: "Which set lists the three primary pigment colors?",
+    options: ["Red, yellow, blue", "Red, green, blue", "Orange, green, purple", "Black, white, gray"],
+    correct: 0,
+    explanation: "Red, yellow, and blue are the primary pigment colors — every other paint color can be mixed from some combination of these three." },
+  { topic: "Color Wheel", q: "Colors directly across from each other on the color wheel are called:",
+    options: ["Complementary colors", "Analogous colors", "Primary colors", "Neutral colors"],
+    correct: 0,
+    explanation: "Complementary colors sit opposite each other (like red and green) and create the strongest contrast when placed side by side." },
+
+  // SIMPLE MACHINES
+  { topic: "Simple Machines", q: "A ramp that lets you raise an object using less force is called a(n):",
+    options: ["Inclined plane", "Wedge", "Pulley", "Wheel and axle"],
+    correct: 0,
+    explanation: "An inclined plane trades distance for force — you push over a longer path, but need less force at any single moment." },
+  { topic: "Simple Machines", q: "A see-saw is a real-world example of which simple machine?",
+    options: ["Screw", "Lever", "Pulley", "Wedge"],
+    correct: 1,
+    explanation: "A see-saw pivots around a fixed point (the fulcrum), which is the defining feature of a lever." },
+  { topic: "Simple Machines", q: "What does a pulley mainly change about the force needed to lift a load?",
+    options: ["It changes the direction and/or amount of force needed", "It removes gravity entirely", "It doubles the object's weight", "It has no real effect on force"],
+    correct: 0,
+    explanation: "A pulley redirects force — often letting you pull down to lift something up — and with multiple pulleys, can reduce the force needed too." },
+  { topic: "Simple Machines", q: "'Mechanical advantage' describes how a machine:",
+    options: ["Multiplies the input force applied to it", "Eliminates all friction", "Makes objects permanently lighter", "Removes the need for any force at all"],
+    correct: 0,
+    explanation: "Mechanical advantage is the factor by which a machine multiplies the force you put in — letting a small push do a bigger job." },
+
+  // ANATOMY
+  { topic: "Anatomy", q: "Which organ pumps blood throughout the body?",
+    options: ["Liver", "Heart", "Lungs", "Kidney"],
+    correct: 1,
+    explanation: "The heart is a muscular pump that pushes blood through the circulatory system, delivering oxygen and nutrients to every cell." },
+  { topic: "Anatomy", q: "Which body system is mainly responsible for breaking down food into usable energy?",
+    options: ["Nervous system", "Skeletal system", "Digestive system", "Respiratory system"],
+    correct: 2,
+    explanation: "The digestive system breaks food down into nutrients the body can absorb and use for energy." },
+  { topic: "Anatomy", q: "What is the main job of red blood cells?",
+    options: ["Fight infection", "Carry oxygen throughout the body", "Clot wounds", "Digest food"],
+    correct: 1,
+    explanation: "Red blood cells contain hemoglobin, which binds to oxygen in the lungs and carries it to tissues around the body." },
+  { topic: "Anatomy", q: "The brain, spinal cord, and nerves together make up the:",
+    options: ["Circulatory system", "Muscular system", "Nervous system", "Skeletal system"],
+    correct: 2,
+    explanation: "The nervous system carries electrical signals between the brain, spinal cord, and the rest of the body." },
+
+  // GLACIERS
+  { topic: "Glaciers", q: "Glaciers form when:",
+    options: ["Snow piles up and compacts into ice over many years", "Rain freezes instantly on the ground", "Ocean water freezes at the surface", "Volcanic ash cools and hardens"],
+    correct: 0,
+    explanation: "Layers of snow build up faster than they melt, and the weight compresses lower layers into dense glacial ice over long periods of time." },
+  { topic: "Glaciers", q: "A wide U-shaped valley was most likely carved by:",
+    options: ["Wind erosion", "Glacier erosion", "A volcanic eruption", "River erosion alone"],
+    correct: 1,
+    explanation: "Glaciers are wide and heavy, so as they slowly move they grind valleys into a rounded U-shape, unlike the narrow V-shapes rivers cut." },
+  { topic: "Glaciers", q: "Rocks and debris that a glacier carries and eventually deposits are called a:",
+    options: ["Delta", "Silt bed", "Moraine", "Sediment plain"],
+    correct: 2,
+    explanation: "A moraine is a ridge of rock, gravel, and dirt left behind by a glacier as it moves or melts." },
+  { topic: "Glaciers", q: "Why do scientists track glacier size as a climate indicator?",
+    options: ["Glaciers only exist in summer", "Glacier growth or shrinkage reflects long-term temperature trends", "Glaciers melt at the same fixed rate every year", "Glaciers are unaffected by temperature"],
+    correct: 1,
+    explanation: "Because glaciers grow with cold, snowy conditions and shrink with warming, tracking their size over decades reveals climate trends." },
+
+  // MEASUREMENT
+  { topic: "Measurement", q: "Which metric unit would you use to measure the mass of a small object?",
+    options: ["Grams", "Liters", "Meters", "Celsius"],
+    correct: 0,
+    explanation: "Grams (and kilograms for larger masses) are the metric units for mass. Liters measure volume, and meters measure length." },
+  { topic: "Measurement", q: "How many milliliters are in 1 liter?",
+    options: ["100", "1,000", "10", "10,000"],
+    correct: 1,
+    explanation: "The metric system is based on powers of ten: 1 liter equals 1,000 milliliters." },
+  { topic: "Measurement", q: "Which tool is used to accurately measure the volume of a liquid?",
+    options: ["Ruler", "Thermometer", "Balance", "Graduated cylinder"],
+    correct: 3,
+    explanation: "A graduated cylinder has fine markings designed specifically for reading liquid volume accurately." },
+  { topic: "Measurement", q: "Converting 2 kilometers to meters gives you:",
+    options: ["20 meters", "200 meters", "2,000 meters", "20,000 meters"],
+    correct: 2,
+    explanation: "1 kilometer = 1,000 meters, so 2 kilometers = 2,000 meters." },
+];
+
+const TOTAL_SECONDS = 38 * 60;
+
+let state = {
+  stage: "start", // start | quiz | done
+  current: 0,
+  selected: null,
+  answered: false,
+  answers: [], // {topic, correct}
+  secondsLeft: TOTAL_SECONDS,
+  timerId: null,
+};
+
+const app = document.getElementById("app");
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, "0")}`;
+}
+
+function startQuiz() {
+  clearInterval(state.timerId);
+  state.stage = "quiz";
+  state.current = 0;
+  state.selected = null;
+  state.answered = false;
+  state.answers = [];
+  state.secondsLeft = TOTAL_SECONDS;
+  state.timerId = setInterval(tick, 1000);
+  render();
+}
+
+function tick() {
+  state.secondsLeft--;
+  if (state.secondsLeft <= 0) {
+    state.secondsLeft = 0;
+    clearInterval(state.timerId);
+    state.stage = "done";
+    render();
+    return;
+  }
+  // only update timer text + progress, not whole re-render, to avoid losing input focus
+  const timerEl = document.querySelector(".timer");
+  if (timerEl) {
+    timerEl.textContent = formatTime(state.secondsLeft);
+    timerEl.classList.toggle("low", state.secondsLeft < 60);
+  }
+}
+
+function chooseOption(idx) {
+  if (state.answered) return;
+  state.selected = idx;
+  state.answered = true;
+  const q = QUESTIONS[state.current];
+  state.answers.push({ topic: q.topic, correct: idx === q.correct });
+  render();
+}
+
+function nextQuestion() {
+  if (state.current + 1 >= QUESTIONS.length) {
+    clearInterval(state.timerId);
+    state.stage = "done";
+    render();
+    return;
+  }
+  state.current++;
+  state.selected = null;
+  state.answered = false;
+  render();
+}
+
+function topicBreakdown() {
+  const map = {};
+  state.answers.forEach((a) => {
+    if (!map[a.topic]) map[a.topic] = { correct: 0, total: 0 };
+    map[a.topic].total++;
+    if (a.correct) map[a.topic].correct++;
+  });
+  return map;
+}
+
+function printWorksheet() {
+  const win = window.open("", "_blank");
+  const rows = QUESTIONS.map((q, i) => `
+    <div style="margin-bottom:18px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#7a7266;margin-bottom:2px;">${q.topic}</div>
+      <div style="font-weight:600;margin-bottom:6px;">${i + 1}. ${q.q}</div>
+      ${q.options.map((o, j) => `<div style="margin-left:16px;">${String.fromCharCode(65 + j)}. ${o}</div>`).join("")}
+    </div>`).join("");
+  win.document.write(`
+    <html><head><title>Practice Set — Printable Worksheet</title></head>
+    <body style="font-family: Georgia, serif; max-width: 700px; margin: 40px auto; color:#2b2822;">
+      <h1 style="font-size:22px;">Practice Set — Printable Worksheet</h1>
+      <p style="color:#7a7266;">32 questions · 8 topics</p>
+      <hr style="margin:20px 0; border:none; border-top:1px solid #ddd;" />
+      ${rows}
+    </body></html>
+  `);
+  win.document.close();
+  win.print();
+}
+
+function render() {
+  if (state.stage === "start") return renderStart();
+  if (state.stage === "quiz") return renderQuiz();
+  if (state.stage === "done") return renderDone();
+}
+
+function renderStart() {
+  const topics = [...new Set(QUESTIONS.map((q) => q.topic))];
+  app.innerHTML = `
+    <div class="kicker">Day 2 Practice Set</div>
+    <h1>32 questions, 8 topics, one sitting.</h1>
+    <p class="subtext">Fossils, Deep Blue Sea, Name the Scientist, Color Wheel, Simple Machines, Anatomy, Glaciers, and Measurement. Target: 38 minutes, no notes.</p>
+    <div class="topic-grid">
+      ${topics.map((t) => `<div class="topic-chip">${t}</div>`).join("")}
+    </div>
+    <button class="btn-primary" id="startBtn">Start the set</button>
+    <button class="btn-text" id="printBtn">Printable worksheet instead →</button>
+  `;
+  document.getElementById("startBtn").onclick = startQuiz;
+  document.getElementById("printBtn").onclick = printWorksheet;
+}
+
+function renderQuiz() {
+  const q = QUESTIONS[state.current];
+  const low = state.secondsLeft < 60;
+
+  app.innerHTML = `
+    <div class="quiz-header">
+      <span class="kicker">${q.topic} · Question ${state.current + 1} of ${QUESTIONS.length}</span>
+      <span class="timer ${low ? "low" : ""}">${formatTime(state.secondsLeft)}</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" style="width:${(state.current / QUESTIONS.length) * 100}%"></div>
+    </div>
+    <h2 class="question">${q.q}</h2>
+    <div class="options-col" id="optionsCol"></div>
+    <div id="explanationSlot"></div>
+  `;
+
+  const optionsCol = document.getElementById("optionsCol");
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "option" + (state.answered ? " locked" : "");
+    if (state.answered) {
+      if (idx === q.correct) btn.classList.add("correct");
+      else if (idx === state.selected) btn.classList.add("wrong");
+    }
+    btn.innerHTML = `<span class="option-letter">${String.fromCharCode(65 + idx)}</span>${opt}`;
+    btn.onclick = () => chooseOption(idx);
+    optionsCol.appendChild(btn);
+  });
+
+  if (state.answered) {
+    const isCorrect = state.selected === q.correct;
+    const slot = document.getElementById("explanationSlot");
+    slot.innerHTML = `
+      <div class="explanation-box">
+        <div class="explanation-title ${isCorrect ? "correct" : "wrong"}">${isCorrect ? "Correct." : "Not quite."}</div>
+        <div>${q.explanation}</div>
+      </div>
+      <button class="btn-primary" id="nextBtn">${state.current + 1 >= QUESTIONS.length ? "See results" : "Next question →"}</button>
+    `;
+    document.getElementById("nextBtn").onclick = nextQuestion;
+  }
+}
+
+function renderDone() {
+  const score = state.answers.filter((a) => a.correct).length;
+  const pct = Math.round((score / QUESTIONS.length) * 100);
+  const breakdown = topicBreakdown();
+
+  app.innerHTML = `
+    <div class="kicker">Results</div>
+    <h1>${score} / ${QUESTIONS.length} correct</h1>
+    <p class="subtext">${pct}% · finished with ${formatTime(state.secondsLeft)} left on the clock</p>
+    <div id="breakdownList" style="margin-top:24px;"></div>
+    <button class="btn-primary" id="retakeBtn">Retake the set</button>
+    <button class="btn-text" id="printBtn2">Printable worksheet →</button>
+  `;
+
+  const list = document.getElementById("breakdownList");
+  Object.entries(breakdown).forEach(([topic, v]) => {
+    const row = document.createElement("div");
+    row.className = "breakdown-row";
+    const good = v.correct === v.total;
+    row.innerHTML = `<span>${topic}</span><span style="color:${good ? "#3a6b4c" : "#8a5a3a"}">${v.correct}/${v.total}</span>`;
+    list.appendChild(row);
+  });
+
+  document.getElementById("retakeBtn").onclick = startQuiz;
+  document.getElementById("printBtn2").onclick = printWorksheet;
+}
+
+render();
+</script>
+</body>
+</html>
