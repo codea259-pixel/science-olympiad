@@ -1,0 +1,681 @@
+import React, { useState, useEffect, useRef } from "react";
+
+// ---------------------------------------------------------------
+// QUESTION DATA — 8 topics x 4 questions = 32 questions
+// ---------------------------------------------------------------
+const QUESTIONS = [
+  // FOSSILS
+  {
+    topic: "Fossils",
+    q: "What is a fossil most commonly formed from?",
+    options: ["Soft tissue like skin", "Hard parts like bones and shells", "Liquid blood", "Green leaves only"],
+    correct: 1,
+    explanation: "Hard parts like bone, teeth, and shells resist decay long enough to be buried and preserved. Soft tissue almost always breaks down first.",
+  },
+  {
+    topic: "Fossils",
+    q: "Which process replaces original bone material with minerals, turning it to stone?",
+    options: ["Permineralization", "Photosynthesis", "Evaporation", "Condensation"],
+    correct: 0,
+    explanation: "Permineralization happens when mineral-rich water seeps into bone and fills the tiny spaces, eventually turning it into rock.",
+  },
+  {
+    topic: "Fossils",
+    q: "A cast fossil forms when...",
+    options: [
+      "An organism is frozen whole in ice",
+      "An animal's shape leaves a mold that later fills with sediment",
+      "Amber traps an insect",
+      "A footprint is left in mud",
+    ],
+    correct: 1,
+    explanation: "A mold is the empty impression left behind. When that mold fills in with sediment or minerals, the resulting copy is called a cast.",
+  },
+  {
+    topic: "Fossils",
+    q: "Footprints, burrows, and nests are all examples of what kind of fossil?",
+    options: ["Trace fossils", "Body fossils", "Preserved DNA", "Chemical fossils"],
+    correct: 0,
+    explanation: "Trace fossils record evidence of an organism's activity — like a footprint or burrow — rather than its actual body parts.",
+  },
+
+  // DEEP BLUE SEA
+  {
+    topic: "Deep Blue Sea",
+    q: "Which ocean zone gets enough sunlight for photosynthesis?",
+    options: ["Epipelagic (sunlight) zone", "Bathypelagic (midnight) zone", "Abyssopelagic zone", "Hadalpelagic zone"],
+    correct: 0,
+    explanation: "The epipelagic zone reaches from the surface to about 200 meters — the only layer with enough light for plants and algae to photosynthesize.",
+  },
+  {
+    topic: "Deep Blue Sea",
+    q: "The 'midnight zone,' where no sunlight reaches at all, is properly called the:",
+    options: ["Mesopelagic zone", "Epipelagic zone", "Bathypelagic zone", "Intertidal zone"],
+    correct: 2,
+    explanation: "The bathypelagic zone (1,000–4,000 m) is completely dark. The mesopelagic zone above it is the dimmer 'twilight zone.'",
+  },
+  {
+    topic: "Deep Blue Sea",
+    q: "How do many deep-sea fish attract prey or mates in total darkness?",
+    options: ["Bioluminescence", "Thick fur", "Loud calls", "Bright daytime coloring"],
+    correct: 0,
+    explanation: "Bioluminescence is light produced by a chemical reaction inside the animal's body — common in anglerfish and many deep-sea species.",
+  },
+  {
+    topic: "Deep Blue Sea",
+    q: "Why does water pressure increase dramatically the deeper you go in the ocean?",
+    options: [
+      "The weight of all the water above pushes down harder",
+      "The water gets saltier with depth",
+      "Sunlight disappears",
+      "The water gets warmer",
+    ],
+    correct: 0,
+    explanation: "Pressure comes from the weight of everything above a given point. The deeper you go, the more water is stacked on top of you.",
+  },
+
+  // NAME THE SCIENTIST
+  {
+    topic: "Name the Scientist",
+    q: "Who developed the theory of evolution by natural selection?",
+    options: ["Isaac Newton", "Charles Darwin", "Gregor Mendel", "Louis Pasteur"],
+    correct: 1,
+    explanation: "Charles Darwin proposed natural selection after studying finches and other wildlife on the Galápagos Islands.",
+  },
+  {
+    topic: "Name the Scientist",
+    q: "Which scientist is known as the father of genetics for his pea plant experiments?",
+    options: ["Charles Darwin", "Gregor Mendel", "Marie Curie", "Albert Einstein"],
+    correct: 1,
+    explanation: "Gregor Mendel tracked traits across generations of pea plants, discovering the basic rules of how traits are inherited.",
+  },
+  {
+    topic: "Name the Scientist",
+    q: "Who discovered radioactivity and won two Nobel Prizes in two different sciences?",
+    options: ["Rosalind Franklin", "Jane Goodall", "Marie Curie", "Ada Lovelace"],
+    correct: 2,
+    explanation: "Marie Curie won the Nobel Prize in Physics (1903) and Chemistry (1911) — the only person to win in two different sciences.",
+  },
+  {
+    topic: "Name the Scientist",
+    q: "Who described the three laws of motion and universal gravitation?",
+    options: ["Galileo Galilei", "Isaac Newton", "Nikola Tesla", "Albert Einstein"],
+    correct: 1,
+    explanation: "Isaac Newton published his three laws of motion and law of universal gravitation in 1687, in the Principia Mathematica.",
+  },
+
+  // COLOR WHEEL
+  {
+    topic: "Color Wheel",
+    q: "Mixing blue paint and yellow paint together makes:",
+    options: ["Green", "Orange", "Purple", "Brown"],
+    correct: 0,
+    explanation: "In pigment (paint) mixing, blue and yellow combine to make green.",
+  },
+  {
+    topic: "Color Wheel",
+    q: "Shining red light and green light on the same spot makes:",
+    options: ["Yellow", "Purple", "Brown", "Blue"],
+    correct: 0,
+    explanation: "Light mixes differently than paint. Red and green light combined (additive mixing) produce yellow — not brown like the paint version.",
+  },
+  {
+    topic: "Color Wheel",
+    q: "Which set lists the three primary pigment colors?",
+    options: ["Red, yellow, blue", "Red, green, blue", "Orange, green, purple", "Black, white, gray"],
+    correct: 0,
+    explanation: "Red, yellow, and blue are the primary pigment colors — every other paint color can be mixed from some combination of these three.",
+  },
+  {
+    topic: "Color Wheel",
+    q: "Colors directly across from each other on the color wheel are called:",
+    options: ["Complementary colors", "Analogous colors", "Primary colors", "Neutral colors"],
+    correct: 0,
+    explanation: "Complementary colors sit opposite each other (like red and green) and create the strongest contrast when placed side by side.",
+  },
+
+  // SIMPLE MACHINES
+  {
+    topic: "Simple Machines",
+    q: "A ramp that lets you raise an object using less force is called a(n):",
+    options: ["Inclined plane", "Wedge", "Pulley", "Wheel and axle"],
+    correct: 0,
+    explanation: "An inclined plane trades distance for force — you push over a longer path, but need less force at any single moment.",
+  },
+  {
+    topic: "Simple Machines",
+    q: "A see-saw is a real-world example of which simple machine?",
+    options: ["Screw", "Lever", "Pulley", "Wedge"],
+    correct: 1,
+    explanation: "A see-saw pivots around a fixed point (the fulcrum), which is the defining feature of a lever.",
+  },
+  {
+    topic: "Simple Machines",
+    q: "What does a pulley mainly change about the force needed to lift a load?",
+    options: [
+      "It changes the direction and/or amount of force needed",
+      "It removes gravity entirely",
+      "It doubles the object's weight",
+      "It has no real effect on force",
+    ],
+    correct: 0,
+    explanation: "A pulley redirects force — often letting you pull down to lift something up — and with multiple pulleys, can reduce the force needed too.",
+  },
+  {
+    topic: "Simple Machines",
+    q: "'Mechanical advantage' describes how a machine:",
+    options: [
+      "Multiplies the input force applied to it",
+      "Eliminates all friction",
+      "Makes objects permanently lighter",
+      "Removes the need for any force at all",
+    ],
+    correct: 0,
+    explanation: "Mechanical advantage is the factor by which a machine multiplies the force you put in — letting a small push do a bigger job.",
+  },
+
+  // ANATOMY
+  {
+    topic: "Anatomy",
+    q: "Which organ pumps blood throughout the body?",
+    options: ["Liver", "Heart", "Lungs", "Kidney"],
+    correct: 1,
+    explanation: "The heart is a muscular pump that pushes blood through the circulatory system, delivering oxygen and nutrients to every cell.",
+  },
+  {
+    topic: "Anatomy",
+    q: "Which body system is mainly responsible for breaking down food into usable energy?",
+    options: ["Nervous system", "Skeletal system", "Digestive system", "Respiratory system"],
+    correct: 2,
+    explanation: "The digestive system breaks food down into nutrients the body can absorb and use for energy.",
+  },
+  {
+    topic: "Anatomy",
+    q: "What is the main job of red blood cells?",
+    options: ["Fight infection", "Carry oxygen throughout the body", "Clot wounds", "Digest food"],
+    correct: 1,
+    explanation: "Red blood cells contain hemoglobin, which binds to oxygen in the lungs and carries it to tissues around the body.",
+  },
+  {
+    topic: "Anatomy",
+    q: "The brain, spinal cord, and nerves together make up the:",
+    options: ["Circulatory system", "Muscular system", "Nervous system", "Skeletal system"],
+    correct: 2,
+    explanation: "The nervous system carries electrical signals between the brain, spinal cord, and the rest of the body.",
+  },
+
+  // GLACIERS
+  {
+    topic: "Glaciers",
+    q: "Glaciers form when:",
+    options: [
+      "Snow piles up and compacts into ice over many years",
+      "Rain freezes instantly on the ground",
+      "Ocean water freezes at the surface",
+      "Volcanic ash cools and hardens",
+    ],
+    correct: 0,
+    explanation: "Layers of snow build up faster than they melt, and the weight compresses lower layers into dense glacial ice over long periods of time.",
+  },
+  {
+    topic: "Glaciers",
+    q: "A wide U-shaped valley was most likely carved by:",
+    options: ["Wind erosion", "Glacier erosion", "A volcanic eruption", "River erosion alone"],
+    correct: 1,
+    explanation: "Glaciers are wide and heavy, so as they slowly move they grind valleys into a rounded U-shape, unlike the narrow V-shapes rivers cut.",
+  },
+  {
+    topic: "Glaciers",
+    q: "Rocks and debris that a glacier carries and eventually deposits are called a:",
+    options: ["Delta", "Silt bed", "Moraine", "Sediment plain"],
+    correct: 2,
+    explanation: "A moraine is a ridge of rock, gravel, and dirt left behind by a glacier as it moves or melts.",
+  },
+  {
+    topic: "Glaciers",
+    q: "Why do scientists track glacier size as a climate indicator?",
+    options: [
+      "Glaciers only exist in summer",
+      "Glacier growth or shrinkage reflects long-term temperature trends",
+      "Glaciers melt at the same fixed rate every year",
+      "Glaciers are unaffected by temperature",
+    ],
+    correct: 1,
+    explanation: "Because glaciers grow with cold, snowy conditions and shrink with warming, tracking their size over decades reveals climate trends.",
+  },
+
+  // MEASUREMENT
+  {
+    topic: "Measurement",
+    q: "Which metric unit would you use to measure the mass of a small object?",
+    options: ["Grams", "Liters", "Meters", "Celsius"],
+    correct: 0,
+    explanation: "Grams (and kilograms for larger masses) are the metric units for mass. Liters measure volume, and meters measure length.",
+  },
+  {
+    topic: "Measurement",
+    q: "How many milliliters are in 1 liter?",
+    options: ["100", "1,000", "10", "10,000"],
+    correct: 1,
+    explanation: "The metric system is based on powers of ten: 1 liter equals 1,000 milliliters.",
+  },
+  {
+    topic: "Measurement",
+    q: "Which tool is used to accurately measure the volume of a liquid?",
+    options: ["Ruler", "Thermometer", "Balance", "Graduated cylinder"],
+    correct: 3,
+    explanation: "A graduated cylinder has fine markings designed specifically for reading liquid volume accurately.",
+  },
+  {
+    topic: "Measurement",
+    q: "Converting 2 kilometers to meters gives you:",
+    options: ["20 meters", "200 meters", "2,000 meters", "20,000 meters"],
+    correct: 2,
+    explanation: "1 kilometer = 1,000 meters, so 2 kilometers = 2,000 meters.",
+  },
+];
+
+const TOTAL_SECONDS = 38 * 60;
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, "0")}`;
+}
+
+export default function ScienceQuiz() {
+  const [stage, setStage] = useState("start"); // start | quiz | done
+  const [current, setCurrent] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [answered, setAnswered] = useState(false);
+  const [answers, setAnswers] = useState([]); // {topic, correct: bool}
+  const [secondsLeft, setSecondsLeft] = useState(TOTAL_SECONDS);
+  const intervalRef = useRef(null);
+
+  useEffect(() => {
+    if (stage !== "quiz") return;
+    intervalRef.current = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          clearInterval(intervalRef.current);
+          setStage("done");
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(intervalRef.current);
+  }, [stage]);
+
+  const startQuiz = () => {
+    setStage("quiz");
+    setCurrent(0);
+    setSelected(null);
+    setAnswered(false);
+    setAnswers([]);
+    setSecondsLeft(TOTAL_SECONDS);
+  };
+
+  const chooseOption = (idx) => {
+    if (answered) return;
+    setSelected(idx);
+    setAnswered(true);
+    const q = QUESTIONS[current];
+    setAnswers((a) => [...a, { topic: q.topic, correct: idx === q.correct }]);
+  };
+
+  const nextQuestion = () => {
+    if (current + 1 >= QUESTIONS.length) {
+      clearInterval(intervalRef.current);
+      setStage("done");
+      return;
+    }
+    setCurrent((c) => c + 1);
+    setSelected(null);
+    setAnswered(false);
+  };
+
+  const score = answers.filter((a) => a.correct).length;
+
+  const topicBreakdown = () => {
+    const map = {};
+    answers.forEach((a) => {
+      if (!map[a.topic]) map[a.topic] = { correct: 0, total: 0 };
+      map[a.topic].total += 1;
+      if (a.correct) map[a.topic].correct += 1;
+    });
+    return map;
+  };
+
+  const printWorksheet = () => {
+    const win = window.open("", "_blank");
+    const rows = QUESTIONS.map(
+      (q, i) => `
+      <div style="margin-bottom:18px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#7a7266;margin-bottom:2px;">${q.topic}</div>
+        <div style="font-weight:600;margin-bottom:6px;">${i + 1}. ${q.q}</div>
+        ${q.options
+          .map(
+            (o, j) =>
+              `<div style="margin-left:16px;">${String.fromCharCode(65 + j)}. ${o}</div>`
+          )
+          .join("")}
+      </div>`
+    ).join("");
+    win.document.write(`
+      <html><head><title>Practice Set — Printable Worksheet</title></head>
+      <body style="font-family: Georgia, serif; max-width: 700px; margin: 40px auto; color:#2b2822;">
+        <h1 style="font-size:22px;">Practice Set — Printable Worksheet</h1>
+        <p style="color:#7a7266;">32 questions · 8 topics</p>
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;" />
+        ${rows}
+      </body></html>
+    `);
+    win.document.close();
+    win.print();
+  };
+
+  // ---------------- START SCREEN ----------------
+  if (stage === "start") {
+    return (
+      <div style={styles.page}>
+        <div style={styles.card}>
+          <div style={styles.kicker}>Day 2 Practice Set</div>
+          <h1 style={styles.h1}>32 questions, 8 topics, one sitting.</h1>
+          <p style={styles.subtext}>
+            Fossils, Deep Blue Sea, Name the Scientist, Color Wheel, Simple
+            Machines, Anatomy, Glaciers, and Measurement. Target: 38 minutes,
+            no notes.
+          </p>
+          <div style={styles.topicGrid}>
+            {[...new Set(QUESTIONS.map((q) => q.topic))].map((t) => (
+              <div key={t} style={styles.topicChip}>
+                {t}
+              </div>
+            ))}
+          </div>
+          <button style={styles.primaryBtn} onClick={startQuiz}>
+            Start the set
+          </button>
+          <button style={styles.textBtn} onClick={printWorksheet}>
+            Printable worksheet instead →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------------- DONE SCREEN ----------------
+  if (stage === "done") {
+    const breakdown = topicBreakdown();
+    const pct = Math.round((score / QUESTIONS.length) * 100);
+    return (
+      <div style={styles.page}>
+        <div style={styles.card}>
+          <div style={styles.kicker}>Results</div>
+          <h1 style={styles.h1}>
+            {score} / {QUESTIONS.length} correct
+          </h1>
+          <p style={styles.subtext}>
+            {pct}% · finished with {formatTime(secondsLeft)} left on the clock
+          </p>
+
+          <div style={{ marginTop: 24 }}>
+            {Object.entries(breakdown).map(([topic, v]) => (
+              <div key={topic} style={styles.breakdownRow}>
+                <span style={{ flex: 1 }}>{topic}</span>
+                <span style={{ color: v.correct === v.total ? "#3a6b4c" : "#8a5a3a" }}>
+                  {v.correct}/{v.total}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <button style={styles.primaryBtn} onClick={startQuiz}>
+            Retake the set
+          </button>
+          <button style={styles.textBtn} onClick={printWorksheet}>
+            Printable worksheet →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------------- QUIZ SCREEN ----------------
+  const q = QUESTIONS[current];
+  return (
+    <div style={styles.page}>
+      <div style={styles.card}>
+        <div style={styles.quizHeader}>
+          <span style={styles.kicker}>
+            {q.topic} · Question {current + 1} of {QUESTIONS.length}
+          </span>
+          <span
+            style={{
+              ...styles.timer,
+              color: secondsLeft < 60 ? "#a13d3d" : "#7a7266",
+            }}
+          >
+            {formatTime(secondsLeft)}
+          </span>
+        </div>
+
+        <div style={styles.progressTrack}>
+          <div
+            style={{
+              ...styles.progressFill,
+              width: `${(current / QUESTIONS.length) * 100}%`,
+            }}
+          />
+        </div>
+
+        <h2 style={styles.question}>{q.q}</h2>
+
+        <div style={styles.optionsCol}>
+          {q.options.map((opt, idx) => {
+            let bg = "#fff";
+            let border = "#ddd6c9";
+            let color = "#2b2822";
+            if (answered) {
+              if (idx === q.correct) {
+                bg = "#eef4ee";
+                border = "#3a6b4c";
+              } else if (idx === selected) {
+                bg = "#f7ece8";
+                border = "#a13d3d";
+              }
+            }
+            return (
+              <button
+                key={idx}
+                onClick={() => chooseOption(idx)}
+                style={{
+                  ...styles.option,
+                  background: bg,
+                  borderColor: border,
+                  color,
+                  cursor: answered ? "default" : "pointer",
+                }}
+              >
+                <span style={styles.optionLetter}>
+                  {String.fromCharCode(65 + idx)}
+                </span>
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+
+        {answered && (
+          <div style={styles.explanationBox}>
+            <div
+              style={{
+                fontWeight: 600,
+                marginBottom: 4,
+                color: selected === q.correct ? "#3a6b4c" : "#a13d3d",
+              }}
+            >
+              {selected === q.correct ? "Correct." : "Not quite."}
+            </div>
+            <div style={{ color: "#4a463d" }}>{q.explanation}</div>
+          </div>
+        )}
+
+        {answered && (
+          <button style={styles.primaryBtn} onClick={nextQuestion}>
+            {current + 1 >= QUESTIONS.length ? "See results" : "Next question →"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    background: "#f6f3ec",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    padding: "48px 20px",
+    fontFamily: "Georgia, 'Times New Roman', serif",
+  },
+  card: {
+    width: "100%",
+    maxWidth: 560,
+    background: "#fffdf9",
+    border: "1px solid #e6e0d3",
+    borderRadius: 4,
+    padding: "40px 36px",
+  },
+  kicker: {
+    fontSize: 13,
+    letterSpacing: "0.03em",
+    color: "#8a8375",
+    fontFamily: "Helvetica, Arial, sans-serif",
+  },
+  h1: {
+    fontSize: 28,
+    lineHeight: 1.25,
+    margin: "10px 0 12px",
+    color: "#242019",
+    fontWeight: 500,
+  },
+  subtext: {
+    fontSize: 15,
+    color: "#5c574c",
+    lineHeight: 1.5,
+    marginBottom: 20,
+  },
+  topicGrid: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 28,
+  },
+  topicChip: {
+    fontFamily: "Helvetica, Arial, sans-serif",
+    fontSize: 13,
+    padding: "6px 12px",
+    background: "#f0ece0",
+    borderRadius: 20,
+    color: "#5c574c",
+  },
+  primaryBtn: {
+    display: "block",
+    width: "100%",
+    padding: "13px 0",
+    background: "#3a3529",
+    color: "#faf8f2",
+    border: "none",
+    borderRadius: 3,
+    fontSize: 15,
+    fontFamily: "Helvetica, Arial, sans-serif",
+    cursor: "pointer",
+    marginTop: 8,
+  },
+  textBtn: {
+    display: "block",
+    width: "100%",
+    textAlign: "center",
+    background: "none",
+    border: "none",
+    color: "#8a5a3a",
+    fontSize: 14,
+    fontFamily: "Helvetica, Arial, sans-serif",
+    cursor: "pointer",
+    marginTop: 14,
+    padding: 0,
+  },
+  quizHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    fontFamily: "Helvetica, Arial, sans-serif",
+  },
+  timer: {
+    fontVariantNumeric: "tabular-nums",
+    fontSize: 14,
+    fontWeight: 600,
+  },
+  progressTrack: {
+    height: 3,
+    background: "#eee9dc",
+    borderRadius: 2,
+    marginTop: 14,
+    marginBottom: 22,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    background: "#3a3529",
+    transition: "width 0.3s ease",
+  },
+  question: {
+    fontSize: 20,
+    lineHeight: 1.4,
+    color: "#242019",
+    fontWeight: 500,
+    marginBottom: 22,
+  },
+  optionsCol: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  option: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    textAlign: "left",
+    padding: "13px 16px",
+    borderRadius: 3,
+    border: "1px solid #ddd6c9",
+    fontSize: 15,
+    fontFamily: "Georgia, serif",
+  },
+  optionLetter: {
+    fontFamily: "Helvetica, Arial, sans-serif",
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#9a9384",
+    width: 18,
+  },
+  explanationBox: {
+    marginTop: 20,
+    padding: "14px 16px",
+    background: "#f6f3ec",
+    borderRadius: 3,
+    fontSize: 14,
+    lineHeight: 1.5,
+  },
+  breakdownRow: {
+    display: "flex",
+    fontFamily: "Helvetica, Arial, sans-serif",
+    fontSize: 14,
+    padding: "8px 0",
+    borderBottom: "1px solid #eee9dc",
+  },
+};
